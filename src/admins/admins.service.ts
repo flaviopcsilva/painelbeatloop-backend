@@ -51,20 +51,36 @@ export class AdminsService {
   }
 
 
+
   async login(email: string, senha: string) {
     const admin = await this.adminRepository.findOne({ where: { email } });
-    if (!admin) {
-      throw new UnauthorizedException('Credenciais inválidas');
+    if (admin) {
+      const senhaValida = await bcrypt.compare(senha, admin.senha);
+      if (!senhaValida) {
+        throw new UnauthorizedException('Credenciais inválidas');
+      }
+
+      const token = this.jwtService.sign({ id: admin.id, email: admin.email });
+
+      return { token };
+
     }
 
-    const senhaValida = await bcrypt.compare(senha, admin.senha);
-    if (!senhaValida) {
-      throw new UnauthorizedException('Credenciais inválidas');
+    // 2. Se não encontrou no banco, verifica se é o superusuário do .env
+    const superEmail = process.env.SUPER_ADMIN_EMAIL;
+    const superPassword = process.env.SUPER_ADMIN_PASSWORD;
+
+    if (email === superEmail && senha === superPassword) {
+      const superAdminPayload = { id: 0, email: superEmail, role: 'superadmin' };
+
+      return {
+        token: this.jwtService.sign(superAdminPayload),
+        user: superAdminPayload
+      };
     }
 
-    const token = this.jwtService.sign({ id: admin.id, email: admin.email });
+    throw new UnauthorizedException('Credenciais inválidas.');
 
-    return { token };
   }
 
 
