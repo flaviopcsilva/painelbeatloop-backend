@@ -1,15 +1,15 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, ParseIntPipe, BadRequestException } from '@nestjs/common';
 import { PacksService } from './packs.service';
 import { CreatePackDto } from './dto/create-pack.dto';
 import { UpdatePackDto } from './dto/update-pack.dto';
 
 @Controller('packs')
 export class PacksController {
-  constructor(private readonly packsService: PacksService) {}
+  constructor(private readonly packsService: PacksService) { }
 
   @Post()
-  create(@Body() createPackDto: CreatePackDto) {
-    return this.packsService.create(createPackDto);
+  create(@Body() data: { nome: string; musicaIds: number[] }) {
+    return this.packsService.create(data.nome, data.musicaIds);
   }
 
   @Get()
@@ -27,8 +27,36 @@ export class PacksController {
     return this.packsService.update(+id, updatePackDto);
   }
 
+  @Get(':id/musicas')
+  async listarMusicas(@Param('id') id: string) {
+    const pack = await this.packsService.listarMusicasPorPack(Number(id));
+
+    if (!pack) {
+      return { message: 'Pack não encontrado' };
+    }
+    return { pack: pack.nome, musicas: pack.musicas };
+  }
+
+
+  // @Get('allpacks')
+  // async listarPacks() {
+  //   const packs = await this.packsService.listarTodosOsPacks();
+  //   console.log(packs);
+
+  //   return packs.map(pack => ({
+  //     id: pack.id,
+  //     nome: pack.nome,
+  //     musicas: pack.musicas ? pack.musicas.map(musica => ({
+  //       id: musica.id,
+  //       titulo: musica.titulo,
+  //       artista: musica.artista,
+  //       url: musica.url,
+  //     })) : [],
+  //   }));
+  // }
+
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.packsService.remove(+id);
+  async remove(@Param('id', new ParseIntPipe({ exceptionFactory: (error) => new BadRequestException('O ID precisa ser um número válido.') })) id: number) {
+    return this.packsService.remove(id);
   }
 }

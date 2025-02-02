@@ -1,19 +1,36 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateMusicaDto } from './dto/create-musica.dto';
 import { UpdateMusicaDto } from './dto/update-musica.dto';
+import { Musica } from './entities/musica.entity';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class MusicasService {
-  create(createMusicaDto: CreateMusicaDto) {
-    return 'This action adds a new musica';
+  constructor(
+    @InjectRepository(Musica) // ✅ INJEÇÃO DO REPOSITÓRIO
+    private readonly musicaRepository: Repository<Musica>,
+  ) { }
+
+
+  async create(musica: Partial<Musica>): Promise<Musica> {
+    try {
+      const novaMusica = this.musicaRepository.create(musica);
+      return await this.musicaRepository.save(novaMusica);
+    } catch (error) {
+      console.error('Erro ao Cadastrar Usuário:', error.message);
+      throw new InternalServerErrorException(`Erro as Cadastrar Música ${error.message}`);
+    }
+
   }
 
+
   findAll() {
-    return `This action returns all musicas`;
+    return this.musicaRepository.find();
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} musica`;
+    return this.musicaRepository.findOne({ where: { id } });
   }
 
   update(id: number, updateMusicaDto: UpdateMusicaDto) {
