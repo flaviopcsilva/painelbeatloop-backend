@@ -36,7 +36,7 @@ export class AppModule implements NestModule {
     consumer
       .apply(
         cors({
-          origin: 'https://painelbeatloop-backend.onrender.com', // Substitua pelo domínio do frontend
+          origin: ['http://localhost:4200', 'https://painelbeatloop-backend.onrender.com'], // Substitua pelo domínio do frontend
           methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
           credentials: true, // Se precisar enviar cookies ou autenticação
         }),
