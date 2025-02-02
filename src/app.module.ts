@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { MusicasModule } from './musicas/musicas.module';
@@ -9,6 +9,7 @@ import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import * as fs from 'fs';
+import * as cors from 'cors';
 
 @Module({
   imports: [
@@ -30,4 +31,16 @@ import * as fs from 'fs';
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule { }
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(
+        cors({
+          origin: 'https://painelbeatloop-backend.onrender.com', // Substitua pelo domínio do frontend
+          methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+          credentials: true, // Se precisar enviar cookies ou autenticação
+        }),
+      )
+      .forRoutes('*');
+  }
+}
