@@ -12,6 +12,6 @@ export class AppService implements OnModuleInit {
       } catch (error) {
         console.error('Erro ao enviar ping:', error);
       }
-    }, 1000 * 60 * 5); // A cada 5 minutos
+    }, 1000 * 60 * 14); // A cada 5 minutos
   }
 }
